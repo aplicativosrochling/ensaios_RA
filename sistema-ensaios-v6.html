@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Ensaios - v5</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <!-- SUPABASE SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
+    
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --rblue: #1a3a8c;
+            --rblue-light: #2756c5;
+            --rblue-dark: #0e255e;
+            --rblue-accent: #4a90d9;
+            --rblue-bg: #e8f0fc;
+            --dark: #0f1419;
+            --dark-secondary: #1a1f26;
+            --light: #f4f7fb;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #d1d9e6;
+            --success: #16a34a;
+            --success-light: #dcfce7;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --info: #0284c7;
+            --info-light: #e0f2fe;
+            --shadow: 0 1px 3px rgba(26,58,140,0.08);
+            --shadow-md: 0 4px 12px rgba(26,58,140,0.12);
+        }
+
+        body { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif; background: var(--light); color: var(--text); }
+        body.dark-mode { background: var(--dark); color: #e8eef7; }
+
+        /* LOGIN SCREEN */
+        #loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(135deg, var(--rblue) 0%, var(--rblue-dark) 100%); }
+        #loginScreen.hidden { display:none; }
+        .login-container { background:white; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.2); padding:40px; width:100%; max-width:400px; }
+        body.dark-mode .login-container { background:var(--dark-secondary); }
+        
+        .login-header { text-align:center; margin-bottom:30px; }
+        .login-header h1 { font-size:24px; color:var(--rblue); margin-bottom:8px; font-weight:700; }
+        body.dark-mode .login-header h1 { color:#7fa8e8; }
+        .login-header p { color:var(--text-light); font-size:14px; }
+
+        .login-form { display:flex; flex-direction:column; gap:16px; }
+        .form-group { display:flex; flex-direction:column; gap:6px; }
+        .form-group label { font-size:13px; font-weight:600; color:var(--text); }
+        body.dark-mode .form-group label { color:#a0aec0; }
+        .form-group input { padding:10px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; transition:border-color 0.2s; }
+        body.dark-mode .form-group input { background:var(--dark); border-color:#333; color:#e8eef7; }
+        .form-group input:focus { outline:none; border-color:var(--rblue); box-shadow:0 0 0 2px var(--rblue-bg); }
+
+        .btn-login { background:var(--rblue); color:white; padding:10px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:background 0.2s; }
+        .btn-login:hover { background:var(--rblue-dark); }
+        .btn-login:disabled { opacity:0.6; cursor:not-allowed; }
+
+        .login-message { padding:10px; border-radius:6px; font-size:13px; text-align:center; display:none; }
+        .login-message.error { background:var(--danger-light); color:var(--danger); display:block; }
+        .login-message.success { background:var(--success-light); color:var(--success); display:block; }
+
+        .login-buttons { display:flex; gap:10px; }
+        .btn-login { flex:1; }
+
+        /* MAIN APP */
+        .container { display:flex; min-height:100vh; }
+        .container.hidden { display:none; }
+
+        /* SIDEBAR */
+        .sidebar { width:260px; background: var(--rblue); color:white; padding:0; box-shadow:var(--shadow-md); position:fixed; height:100vh; overflow-y:auto; z-index:1000; transition:width 0.3s; }
+        body.dark-mode .sidebar { background: var(--dark-secondary); border-right:1px solid #333; }
+        .sidebar.collapsed { width:70px; }
+        
+        .sidebar-header { padding:20px; border-bottom:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; gap:10px; overflow:hidden; }
+        .sidebar-logo-text { font-size:13px; color:rgba(255,255,255,0.9); white-space:nowrap; transition:opacity 0.2s; font-weight:600; }
+        .sidebar.collapsed .sidebar-logo-text { opacity:0; width:0; overflow:hidden; }
+
+        .sidebar-nav { list-style:none; padding:10px 0; }
+        .sidebar-nav a { display:flex; align-items:center; gap:12px; padding:12px 20px; color:rgba(255,255,255,0.8); text-decoration:none; transition:all 0.2s; font-size:14px; border-left:3px solid transparent; white-space:nowrap; overflow:hidden; cursor:pointer; }
+        .sidebar.collapsed .sidebar-nav a { padding:14px; justify-content:center; }
+        .sidebar-nav a:hover { color:white; background:rgba(255,255,255,0.12); border-left-color:rgba(255,255,255,0.5); }
+        .sidebar-nav a.active { color:white; background:rgba(255,255,255,0.18); border-left-color:white; font-weight:600; }
+        .sidebar-nav a span { transition:opacity 0.2s; }
+        .sidebar.collapsed .sidebar-nav a span { opacity:0; width:0; overflow:hidden; }
+
+        .sidebar-bottom { padding:20px; border-top:1px solid rgba(255,255,255,0.12); margin-top:auto; }
+        .btn-logout { width:100%; padding:10px; background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:6px; cursor:pointer; font-size:13px; transition:background 0.2s; }
+        .btn-logout:hover { background:rgba(255,255,255,0.3); }
+
+        /* MAIN */
+        .main-content { flex:1; margin-left:260px; display:flex; flex-direction:column; transition:margin-left 0.3s; min-height:100vh; }
+        .main-content.sidebar-collapsed { margin-left:70px; }
+
+        /* HEADER */
+        .header { background:white; padding:14px 30px; box-shadow:var(--shadow); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; border-bottom:3px solid var(--rblue); }
+        body.dark-mode .header { background:var(--dark-secondary); border-bottom-color:var(--rblue-light); }
+        .header-left { display:flex; align-items:center; gap:15px; }
+        .toggle-sidebar { background:none; border:none; font-size:20px; cursor:pointer; color:var(--rblue); padding:4px; border-radius:4px; transition:background 0.2s; }
+        .toggle-sidebar:hover { background:var(--rblue-bg); }
+        .header-title { font-size:20px; font-weight:700; color:var(--rblue); }
+        body.dark-mode .header-title { color:#7fa8e8; }
+        .header-right { display:flex; align-items:center; gap:16px; }
+        .user-info { font-size:12px; color:var(--text-light); text-align:right; }
+        .user-email { font-weight:600; color:var(--rblue); }
+        .theme-toggle { background:none; border:none; cursor:pointer; font-size:18px; }
+
+        /* CONTENT */
+        .content { flex:1; padding:28px 30px; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; animation:fadeIn 0.25s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* KPI */
+        .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+        .kpi-card { background:white; padding:20px; border-radius:10px; box-shadow:var(--shadow); border-top:4px solid var(--rblue); transition:transform 0.2s,box-shadow 0.2s; }
+        body.dark-mode .kpi-card { background:var(--dark-secondary); border:1px solid #333; border-top:4px solid var(--rblue-light); }
+        .kpi-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+        .kpi-card.success { border-top-color:var(--success); }
+        .kpi-card.danger { border-top-color:var(--danger); }
+        .kpi-card.warning { border-top-color:var(--warning); }
+        .kpi-card.info { border-top-color:var(--info); }
+        .kpi-card h4 { font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:8px; font-weight:600; }
+        .kpi-card .value { font-size:30px; font-weight:800; color:var(--rblue); margin-bottom:4px; }
+        .kpi-card.success .value { color:var(--success); }
+        .kpi-card.danger .value { color:var(--danger); }
+        .kpi-card.warning .value { color:var(--warning); font-size:16px; }
+        .kpi-card.info .value { color:var(--info); }
+        .kpi-card .trend { font-size:12px; color:var(--text-light); }
+        body.dark-mode .kpi-card h4, body.dark-mode .kpi-card .trend { color:#a0aec0; }
+
+        /* TABLES */
+        .table-wrapper { background:white; border-radius:10px; padding:20px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:20px; }
+        body.dark-mode .table-wrapper { background:var(--dark-secondary); border:1px solid #333; }
+        .table-wrapper table { width:100%; border-collapse:collapse; font-size:13px; }
+        .table-wrapper thead { background:var(--rblue); color:white; }
+        .table-wrapper thead th { padding:11px 14px; text-align:left; font-weight:600; font-size:12px; }
+        .table-wrapper tbody td { padding:11px 14px; border-bottom:1px solid var(--border); }
+        body.dark-mode .table-wrapper tbody td { border-bottom:1px solid #333; }
+        .table-wrapper tbody tr:hover { background:var(--rblue-bg); }
+        body.dark-mode .table-wrapper tbody tr:hover { background:rgba(255,255,255,0.05); }
+
+        /* BUTTONS */
+        .btn { padding:8px 14px; border:none; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600; transition:all 0.2s; }
+        .btn-primary { background:var(--rblue); color:white; }
+        .btn-primary:hover { background:var(--rblue-dark); }
+        .btn-success { background:var(--success); color:white; }
+        .btn-success:hover { background:rgba(22,163,74,0.9); }
+        .btn-danger { background:var(--danger); color:white; }
+        .btn-danger:hover { background:rgba(220,38,38,0.9); }
+
+        /* MODALS */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+        .modal.show { display:flex; }
+        .modal-content { background:white; border-radius:12px; padding:30px; width:90%; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.3); }
+        body.dark-mode .modal-content { background:var(--dark-secondary); color:#e8eef7; }
+        .modal-content h2 { color:var(--rblue); margin-bottom:20px; }
+        body.dark-mode .modal-content h2 { color:#7fa8e8; }
+
+        .sync-status { position:fixed; bottom:20px; right:20px; padding:12px 20px; border-radius:8px; font-size:13px; font-weight:600; z-index:1000; display:flex; align-items:center; gap:8px; }
+        .sync-status.success { background:var(--success-light); color:var(--success); }
+        .sync-status.error { background:var(--danger-light); color:var(--danger); }
+        .sync-status.syncing { background:var(--info-light); color:var(--info); }
+
+        .toast { position:fixed; top:20px; right:20px; padding:14px 20px; border-radius:8px; font-weight:600; z-index:10000; box-shadow:var(--shadow-md); max-width:400px; }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔐 Gerenciamento de Ensaios</h1>
+            <p>v5 - Autenticação Segura</p>
+        </div>
+
+        <div id="loginMessage" class="login-message"></div>
+
+        <form id="loginForm" class="login-form">
+            <div class="form-group">
+                <label>📧 Email</label>
+                <input type="email" id="email" placeholder="seu@email.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label>🔑 Senha</label>
+                <input type="password" id="password" placeholder="Sua senha" required>
+            </div>
+
+            <div class="login-buttons">
+                <button type="submit" class="btn btn-login">Entrar</button>
+                <button type="button" class="btn btn-login" id="btnRegister" style="background:#666;">Registrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appContainer" class="container hidden">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <span>📊</span>
+            <span class="sidebar-logo-text">Ensaios</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a data-tab="dashboard" class="nav-link active" onclick="ativarTab('dashboard')">
+                <span>📈</span>
+                <span>Dashboard</span>
+            </a>
+            <a data-tab="ensaios" class="nav-link" onclick="ativarTab('ensaios')">
+                <span>🧪</span>
+                <span>Ensaios</span>
+            </a>
+            <a data-tab="produtos" class="nav-link" onclick="ativarTab('produtos')">
+                <span>📦</span>
+                <span>Produtos</span>
+            </a>
+            <a data-tab="relatorios" class="nav-link" onclick="ativarTab('relatorios')">
+                <span>📄</span>
+                <span>Relatórios</span>
+            </a>
+            <a data-tab="configuracoes" class="nav-link" onclick="ativarTab('configuracoes')">
+                <span>⚙️</span>
+                <span>Configurações</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <button id="btnLogout" class="btn-logout">🚪 Sair</button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <button id="toggleSidebar" class="toggle-sidebar">☰</button>
+                <h1 id="pageTitle" class="header-title">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div>Bem-vindo!</div>
+                    <div class="user-email" id="userEmail">usuario@email.com</div>
+                </div>
+                <button id="themeToggle" class="theme-toggle">🌙</button>
+            </div>
+        </header>
+
+        <!-- CONTENT -->
+        <div class="content">
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="tab-content active">
+                <div class="kpi-grid">
+                    <div class="kpi-card info">
+                        <h4>Total de Produtos</h4>
+                        <div class="value" id="kpiTotalProdutos">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h4>Total de Ensaios</h4>
+                        <div class="value" id="kpiTotalEnsaios">0</div>
+                    </div>
+                    <div class="kpi-card success">
+                        <h4>Aprovados</h4>
+                        <div class="value" id="kpiAprovados">0</div>
+                    </div>
+                    <div class="kpi-card danger">
+                        <h4>Reprovados</h4>
+                        <div class="value" id="kpiReprovados">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ENSAIOS -->
+            <div id="ensaios" class="tab-content">
+                <button id="btnNovoEnsaio" class="btn btn-success" style="margin-bottom:20px;">➕ Novo Ensaio</button>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Hora</th>
+                                <th>Produto</th>
+                                <th>Tipo</th>
+                                <th>Resultado</th>
+                                <th>Status</th>
+                                <th>Inspetor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyEnsaios">
+                            <tr><td colspan="8" style="text-align:center;padding:20px;">Nenhum ensaio cadastrado</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PRODUTOS -->
+            <div id="produtos" class="tab-content">
+                <button id="btnNovoProduto" class="btn btn-success" style="margin-bottom:20px;">➕ Novo Produto</button>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nome</th>
+                                <th>Cliente</th>
+                                <th>Ensaios</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyProdutos">
+                            <tr><td colspan="5" style="text-align:center;padding:20px;">Nenhum produto cadastrado</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RELATÓRIOS -->
+            <div id="relatorios" class="tab-content">
+                <p>Relatórios em desenvolvimento...</p>
+            </div>
+
+            <!-- CONFIGURAÇÕES -->
+            <div id="configuracoes" class="tab-content">
+                <div style="background:white; padding:20px; border-radius:10px; box-shadow:var(--shadow);">
+                    <h3>ℹ️ Informações da Sessão</h3>
+                    <hr style="margin:15px 0;">
+                    <p><strong>Email:</strong> <span id="configEmail">-</span></p>
+                    <p><strong>ID do Usuário:</strong> <span id="configUserId">-</span></p>
+                    <p><strong>Hora:</strong> <span id="currentTime">--:--:--</span></p>
+                    <p><strong>Data:</strong> <span id="currentDate">--/--/----</span></p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- MODAL ENSAIO -->
+<div id="modalEnsaio" class="modal">
+    <div class="modal-content">
+        <h2>🧪 Novo Ensaio</h2>
+        
+        <form id="formEnsaio" style="display:flex; flex-direction:column; gap:14px;">
+            <div class="form-group">
+                <label>📅 Data</label>
+                <input type="date" id="ensaioDia" required>
+            </div>
+            
+            <div class="form-group">
+                <label>🕐 Hora</label>
+                <input type="time" id="ensaioHora" required>
+            </div>
+            
+            <div class="form-group">
+                <label>📦 Produto</label>
+                <select id="ensaioProduto" required>
+                    <option value="">Selecione um produto</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>🧪 Tipo de Ensaio</label>
+                <input type="text" id="ensaioTipo" placeholder="Ex: Tração, Flexão" required>
+            </div>
+            
+            <div class="form-group">
+                <label>📊 Resultado</label>
+                <input type="text" id="ensaioResultado" placeholder="Ex: 45.2 MPa" required>
+            </div>
+            
+            <div class="form-group">
+                <label>✓ Status</label>
+                <select id="ensaioStatus" required>
+                    <option value="Aprovado">✓ Aprovado</option>
+                    <option value="Reprovado">✗ Reprovado</option>
+                    <option value="Pendente">⏳ Pendente</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>👤 Inspetor</label>
+                <input type="text" id="ensaioInspetor" placeholder="Nome do inspetor" required>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button type="submit" class="btn btn-success" style="flex:1;">💾 Salvar</button>
+                <button type="button" class="btn" style="flex:1; background:var(--text-light); color:white;" onclick="fecharModalEnsaio()">❌ Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL PRODUTO -->
+<div id="modalProduto" class="modal">
+    <div class="modal-content">
+        <h2>📦 Novo Produto</h2>
+        
+        <form id="formProduto" style="display:flex; flex-direction:column; gap:14px;">
+            <div class="form-group">
+                <label>Código</label>
+                <input type="text" id="produtoCodigo" placeholder="Ex: PROD-001" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="produtoNome" placeholder="Nome do produto" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Cliente</label>
+                <input type="text" id="produtoCliente" placeholder="Nome do cliente">
+            </div>
+            
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="produtoDescricao" placeholder="Descrição" style="padding:8px; border:1px solid var(--border); border-radius:6px; height:80px; font-family:inherit;"></textarea>
+            </div>
+            
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-success" style="flex:1;">💾 Salvar</button>
+                <button type="button" class="btn" style="flex:1; background:var(--text-light); color:white;" onclick="fecharModalProduto()">❌ Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SYNC STATUS -->
+<div class="sync-status success" id="syncStatus">
+    <span id="syncText">✓ Sincronizado</span>
+</div>
+
+<script>
+// ==================== CONFIGURAÇÃO INICIAL ====================
+// ⚠️ IMPORTANTE: Mude isto para suas credenciais Supabase
+const SUPABASE_URL = 'https://gtqtgpdskkdvwbwgajmk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cXRncGRza2tkdndid2dham1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTIzOTgsImV4cCI6MjA5NTk4ODM5OH0.-1JIxX2lb1oNNLKu1b7ZiGSL1JYIgdHxQNEx7S8xVCY';
+
+let supabaseClient = null;
+let usuarioAtual = null;
+
+// ✅ Inicializar Supabase
+function inicializarSupabase() {
+    try {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('✓ Supabase inicializado');
+        return true;
+    } catch (e) {
+        console.error('✗ Erro ao inicializar Supabase:', e);
+        return false;
+    }
+}
+
+// ==================== AUTENTICAÇÃO ====================
+
+async function fazerLogin(email, senha) {
+    try {
+        mostrarToast('Autenticando...', 'info');
+        
+        if (!supabaseClient) {
+            throw new Error('Supabase não inicializado');
+        }
+
+        // ✅ Login com Supabase Auth
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password: senha
+        });
+
+        if (error) {
+            throw new Error(error.message || 'Erro ao fazer login');
+        }
+
+        // ✅ Usar auth.uid() do Supabase
+        usuarioAtual = {
+            email: data.user.email,
+            id: data.user.id,  // ← UUID correto do Supabase
+            metadata: data.user.user_metadata
+        };
+
+        localStorage.setItem('usuarioAtual', JSON.stringify(usuarioAtual));
+        mostrarApp();
+        carregarDados();
+        mostrarToast('Login bem-sucedido!', 'success');
+        
+    } catch (erro) {
+        console.error('Erro de login:', erro);
+        mostrarToast(`Erro: ${erro.message}`, 'error');
+    }
+}
+
+async function registrarUsuario(email, senha) {
+    try {
+        if (!supabaseClient) {
+            throw new Error('Supabase não inicializado');
+        }
+
+        // ✅ Registrar com Supabase Auth
+        const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password: senha,
+            options: {
+                data: {
+                    criado_em: new Date().toISOString()
+                }
+            }
+        });
+
+        if (error) {
+            throw new Error(error.message || 'Erro ao registrar');
+        }
+
+        mostrarToast('Conta criada! Verifique seu email para confirmar.', 'success');
+        
+        // Se sessão foi criada automaticamente
+        if (data.session) {
+            usuarioAtual = {
+                email: data.user.email,
+                id: data.user.id,
+                metadata: data.user.user_metadata
+            };
+            localStorage.setItem('usuarioAtual', JSON.stringify(usuarioAtual));
+            mostrarApp();
+            carregarDados();
+        }
+        
+    } catch (erro) {
+        console.error('Erro de registro:', erro);
+        mostrarToast(`Erro: ${erro.message}`, 'error');
+    }
+}
+
+function sair() {
+    usuarioAtual = null;
+    localStorage.removeItem('usuarioAtual');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('appContainer').classList.add('hidden');
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('loginMessage').textContent = '';
+    mostrarToast('Você saiu da sessão', 'info');
+}
+
+function mostrarApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appContainer').classList.remove('hidden');
+    document.getElementById('userEmail').textContent = usuarioAtual.email;
+    document.getElementById('configEmail').textContent = usuarioAtual.email;
+    document.getElementById('configUserId').textContent = usuarioAtual.id;
+}
+
+// ==================== CARREGAR DADOS ====================
+
+async function carregarDados() {
+    try {
+        // ✅ Validação 1: Usuário autenticado?
+        if (!usuarioAtual?.id) {
+            console.warn('Usuário não autenticado');
+            return;
+        }
+
+        mostrarSyncStatus('Carregando...', 'syncing');
+
+        // ✅ Validação 2: Carregar apenas dados do usuário
+        const [resEnsaios, resProdutos] = await Promise.all([
+            supabaseClient
+                .from('ensaios')
+                .select('*')
+                .eq('usuario_id', usuarioAtual.id)
+                .order('data', { ascending: false }),
+            supabaseClient
+                .from('produtos')
+                .select('*')
+                .eq('usuario_id', usuarioAtual.id)
+                .order('created_at', { ascending: false })
+        ]);
+
+        if (resEnsaios.error) throw resEnsaios.error;
+        if (resProdutos.error) throw resProdutos.error;
+
+        window.ensaios = resEnsaios.data || [];
+        window.produtos = resProdutos.data || [];
+
+        // ✅ Validação 3: Verificar que todos dados pertencem ao usuário
+        const ensaiosValidos = window.ensaios.every(
+            e => e.usuario_id === usuarioAtual.id
+        );
+        const produtosValidos = window.produtos.every(
+            p => p.usuario_id === usuarioAtual.id
+        );
+
+        if (!ensaiosValidos || !produtosValidos) {
+            console.error('⚠️ Dados de outro usuário detectados!');
+            throw new Error('Violação de isolamento de dados');
+        }
+
+        mostrarSyncStatus('Sincronizado', 'success');
+        atualizarTelas();
+        
+    } catch (erro) {
+        console.error('Erro ao carregar:', erro);
+        mostrarSyncStatus('Erro na sincronização', 'error');
+        mostrarToast(`Erro: ${erro.message}`, 'error');
+    }
+}
+
+// ==================== SALVAR DADOS ====================
+
+async function salvarEnsaio(dados) {
+    try {
+        // ✅ Validação 1: Usuário autenticado?
+        if (!usuarioAtual?.id) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        mostrarSyncStatus('Salvando...', 'syncing');
+
+        // ✅ Validação 2: Adicionar sempre usuario_id
+        const ensaioComUsuario = {
+            ...dados,
+            usuario_id: usuarioAtual.id  // ← auth.uid()
+        };
+
+        const { data, error } = await supabaseClient
+            .from('ensaios')
+            .upsert([ensaioComUsuario])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        console.log('✓ Ensaio salvo:', data);
+        mostrarSyncStatus('Sincronizado', 'success');
+        mostrarToast('Ensaio salvo com sucesso!', 'success');
+        
+        carregarDados();
+        
+    } catch (erro) {
+        console.error('Erro ao salvar:', erro);
+        mostrarSyncStatus('Erro na sincronização', 'error');
+        mostrarToast(`Erro: ${erro.message}`, 'error');
+    }
+}
+
+async function salvarProduto(dados) {
+    try {
+        // ✅ Validação 1: Usuário autenticado?
+        if (!usuarioAtual?.id) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        mostrarSyncStatus('Salvando...', 'syncing');
+
+        // ✅ Validação 2: Adicionar sempre usuario_id
+        const produtoComUsuario = {
+            ...dados,
+            usuario_id: usuarioAtual.id  // ← auth.uid()
+        };
+
+        const { data, error } = await supabaseClient
+            .from('produtos')
+            .upsert([produtoComUsuario])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        mostrarSyncStatus('Sincronizado', 'success');
+        mostrarToast('Produto salvo com sucesso!', 'success');
+        
+        carregarDados();
+        
+    } catch (erro) {
+        console.error('Erro ao salvar:', erro);
+        mostrarSyncStatus('Erro na sincronização', 'error');
+        mostrarToast(`Erro: ${erro.message}`, 'error');
+    }
+}
+
+async function deletarEnsaio(id) {
+    try {
+        // ✅ Validação 1: Usuário autenticado?
+        if (!usuarioAtual?.id) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        // ✅ Validação 2: Ensaio pertence ao usuário?
+        const ensaio = window.ensaios.find(e => e.id === id);
+        if (!ensaio || ensaio.usuario_id !== usuarioAtual.id) {
+            throw new Error('Ensaio não encontrado ou não pertence a você');
+        }
+
+        if (!confirm('Deseja deletar este ensaio?')) return;
+
+        mostrarSyncStatus('Deletando...', 'syncing');
+
+        const { error } = await supabaseClient
+            .from('ensaios')
+            .delete()
+            .eq('id', id)
+            .eq('usuario_id', usuarioAtual.id);
+
+        if (error) throw error;
+
+        mostrarSyncStatus('Sincronizado', 'success');
+        mostrarToast('Ensaio deletado com sucesso!', 'success');
+        carregarDados();
+        
+    } catch (erro) {
+        console.error('Erro ao deletar:', erro);
+        mostrarSyncStatus('Erro na sincronização', 'error');
+        mostrarToast(`Erro: ${erro.message}`, 'error');
+    }
+}
+
+async function deletarProduto(id) {
+    try {
+        // ✅ Validação 1: Usuário autenticado?
+        if (!usuarioAtual?.id) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        // ✅ Validação 2: Produto pertence ao usuário?
+        const produto = window.produtos.find(p => p.id === id);
+        if (!produto || produto.usuario_id !== usuarioAtual.id) {
+            throw new Error('Produto não encontrado ou não pertence a você');
+        }
+
+        // Verificar se tem ensaios vinculados
+        const temEnsaios = window.ensaios.some(e => e.produto_id === id);
+        if (temEnsaios) {
+            mostrarToast('Não é possível deletar. Existem ensaios vinculados!', 'warning');
+            return;
+        }
+
+        if (!confirm('Deseja deletar este produto?')) return;
+
+        mostrarSyncStatus('Deletando...', 'syncing');
+
+        const { error } = await supabaseClient
+            .from('produtos')
+            .delete()
+            .eq('id', id)
+            .eq('usuario_id', usuarioAtual.id);
+
+        if (error) throw error;
+
+        mostrarSyncStatus('Sincronizado', 'success');
+        mostrarToast('Produto deletado com sucesso!', 'success');
+        carregarDados();
+        
+    } catch (erro) {
+        console.error('Erro ao deletar:', erro);
+        mostrarSyncStatus('Erro na sincronização', 'error');
+        mostrarToast(`Erro: ${erro.message}`, 'error');
+    }
+}
+
+// ==================== INTERFACE ====================
+
+function ativarTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    const titulos = {
+        dashboard: 'Dashboard',
+        ensaios: 'Gerenciamento de Ensaios',
+        produtos: 'Cadastro de Produtos',
+        relatorios: 'Relatórios',
+        configuracoes: 'Configurações'
+    };
+    document.getElementById('pageTitle').textContent = titulos[tabName];
+}
+
+function atualizarDashboard() {
+    const total = window.ensaios.length;
+    const aprovados = window.ensaios.filter(e => e.status === 'Aprovado').length;
+    const reprovados = window.ensaios.filter(e => e.status === 'Reprovado').length;
+
+    document.getElementById('kpiTotalProdutos').textContent = window.produtos.length;
+    document.getElementById('kpiTotalEnsaios').textContent = total;
+    document.getElementById('kpiAprovados').textContent = aprovados;
+    document.getElementById('kpiReprovados').textContent = reprovados;
+}
+
+function atualizarTelas() {
+    atualizarDashboard();
+    renderizarEnsaios();
+    renderizarProdutos();
+}
+
+function renderizarEnsaios() {
+    const tbody = document.getElementById('bodyEnsaios');
+    tbody.innerHTML = '';
+    
+    if (window.ensaios.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">Nenhum ensaio cadastrado</td></tr>';
+        return;
+    }
+
+    window.ensaios.forEach(e => {
+        const tr = document.createElement('tr');
+        const statusClass = e.status === 'Aprovado' ? 'success' : e.status === 'Reprovado' ? 'danger' : 'warning';
+        const statusBg = e.status === 'Aprovado' ? 'var(--success-light)' : e.status === 'Reprovado' ? 'var(--danger-light)' : 'var(--warning-light)';
+        const statusColor = e.status === 'Aprovado' ? 'var(--success)' : e.status === 'Reprovado' ? 'var(--danger)' : 'var(--warning)';
+        
+        tr.innerHTML = `
+            <td>${new Date(e.data).toLocaleDateString('pt-BR')}</td>
+            <td>${e.hora || '-'}</td>
+            <td>${window.produtos.find(p => p.id === e.produto_id)?.nome || e.produto_id || '-'}</td>
+            <td>${e.tipo_ensaio || '-'}</td>
+            <td>${e.resultado || '-'}</td>
+            <td>
+                <span style="
+                    padding:4px 8px; 
+                    border-radius:4px; 
+                    font-size:12px; 
+                    font-weight:600;
+                    background:${statusBg};
+                    color:${statusColor};
+                ">
+                    ${e.status || '-'}
+                </span>
+            </td>
+            <td>${e.inspetor || '-'}</td>
+            <td>
+                <button class="btn" style="background:var(--info); color:white; padding:4px 8px; font-size:11px;" onclick="editarEnsaio('${e.id}')">✏️</button>
+                <button class="btn" style="background:var(--danger); color:white; padding:4px 8px; font-size:11px; margin-left:4px;" onclick="deletarEnsaio('${e.id}')">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function renderizarProdutos() {
+    const tbody = document.getElementById('bodyProdutos');
+    tbody.innerHTML = '';
+    
+    if (window.produtos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Nenhum produto cadastrado</td></tr>';
+        return;
+    }
+    
+    window.produtos.forEach(p => {
+        const ensaiosCount = window.ensaios.filter(e => e.produto_id === p.id).length;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${p.codigo || '-'}</td>
+            <td><strong>${p.nome || '-'}</strong></td>
+            <td>${p.cliente || '-'}</td>
+            <td><span style="background:var(--info-light); color:var(--info); padding:4px 8px; border-radius:4px; font-weight:600;">${ensaiosCount}</span></td>
+            <td>
+                <button class="btn" style="background:var(--info); color:white; padding:4px 8px; font-size:11px;" onclick="editarProduto('${p.id}')">✏️</button>
+                <button class="btn" style="background:var(--danger); color:white; padding:4px 8px; font-size:11px; margin-left:4px;" onclick="deletarProduto('${p.id}')">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ==================== MODAIS ====================
+
+function abrirModalEnsaio() {
+    document.getElementById('modalEnsaio').classList.add('show');
+    document.getElementById('formEnsaio').reset();
+    document.getElementById('ensaioDia').value = new Date().toISOString().split('T')[0];
+    document.getElementById('ensaioHora').value = new Date().toTimeString().slice(0, 5);
+    carregarProdutosSelect();
+}
+
+function fecharModalEnsaio() {
+    document.getElementById('modalEnsaio').classList.remove('show');
+    document.getElementById('formEnsaio').reset();
+}
+
+function abrirModalProduto() {
+    document.getElementById('modalProduto').classList.add('show');
+    document.getElementById('formProduto').reset();
+}
+
+function fecharModalProduto() {
+    document.getElementById('modalProduto').classList.remove('show');
+    document.getElementById('formProduto').reset();
+}
+
+function carregarProdutosSelect() {
+    const select = document.getElementById('ensaioProduto');
+    select.innerHTML = '<option value="">Selecione um produto</option>';
+    window.produtos.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.nome || p.codigo;
+        select.appendChild(opt);
+    });
+}
+
+function editarEnsaio(id) {
+    mostrarToast('Edição em desenvolvimento...', 'info');
+}
+
+function editarProduto(id) {
+    mostrarToast('Edição em desenvolvimento...', 'info');
+}
+
+// ==================== UTILITÁRIOS ====================
+
+function mostrarToast(msg, tipo='info') {
+    const t = document.createElement('div');
+    const cores = {
+        success: ['var(--success-light)', 'var(--success)'],
+        error: ['var(--danger-light)', 'var(--danger)'],
+        warning: ['var(--warning-light)', 'var(--warning)'],
+        info: ['var(--info-light)', 'var(--info)']
+    };
+    const [bg, clr] = cores[tipo] || cores.info;
+    const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+    t.className = 'toast';
+    t.style.cssText = `background:${bg};color:${clr};border-left:4px solid ${clr};`;
+    t.innerHTML = `<strong>${icons[tipo] || 'ℹ'}</strong> ${msg}`;
+    document.body.appendChild(t);
+    setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transition = 'opacity 0.3s';
+        setTimeout(() => t.remove(), 300);
+    }, 3500);
+}
+
+function mostrarSyncStatus(texto, tipo = 'syncing') {
+    const el = document.getElementById('syncStatus');
+    el.className = 'sync-status ' + tipo;
+    el.querySelector('#syncText').textContent = texto;
+}
+
+// ==================== EVENTOS ====================
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('password').value;
+    await fazerLogin(email, senha);
+});
+
+document.getElementById('btnRegister').addEventListener('click', async () => {
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('password').value;
+    if (!email || !senha) {
+        mostrarToast('Preencha email e senha', 'warning');
+        return;
+    }
+    await registrarUsuario(email, senha);
+});
+
+document.getElementById('btnLogout').addEventListener('click', sair);
+document.getElementById('btnNovoProduto').addEventListener('click', abrirModalProduto);
+document.getElementById('btnNovoEnsaio').addEventListener('click', abrirModalEnsaio);
+
+document.getElementById('formProduto').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const produto = {
+        codigo: document.getElementById('produtoCodigo').value,
+        nome: document.getElementById('produtoNome').value,
+        cliente: document.getElementById('produtoCliente').value || 'Não informado',
+        descricao: document.getElementById('produtoDescricao').value,
+        created_at: new Date().toISOString()
+    };
+    await salvarProduto(produto);
+    fecharModalProduto();
+});
+
+document.getElementById('formEnsaio').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ensaio = {
+        data: document.getElementById('ensaioDia').value,
+        hora: document.getElementById('ensaioHora').value,
+        produto_id: document.getElementById('ensaioProduto').value,
+        tipo_ensaio: document.getElementById('ensaioTipo').value,
+        resultado: document.getElementById('ensaioResultado').value,
+        status: document.getElementById('ensaioStatus').value,
+        inspetor: document.getElementById('ensaioInspetor').value,
+        created_at: new Date().toISOString()
+    };
+    await salvarEnsaio(ensaio);
+    fecharModalEnsaio();
+});
+
+document.getElementById('toggleSidebar').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+});
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+});
+
+// Fechar modais ao clicar fora
+document.getElementById('modalEnsaio').addEventListener('click', (e) => {
+    if (e.target.id === 'modalEnsaio') fecharModalEnsaio();
+});
+
+document.getElementById('modalProduto').addEventListener('click', (e) => {
+    if (e.target.id === 'modalProduto') fecharModalProduto();
+});
+
+// ==================== INICIALIZAÇÃO ====================
+
+window.addEventListener('DOMContentLoaded', async () => {
+    inicializarSupabase();
+    
+    // Restaurar tema
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Verificar se há sessão
+    const { data } = await supabaseClient.auth.getSession();
+    
+    if (data?.session?.user) {
+        // ✅ Usuário autenticado
+        usuarioAtual = {
+            email: data.session.user.email,
+            id: data.session.user.id,
+            metadata: data.session.user.user_metadata
+        };
+        mostrarApp();
+        carregarDados();
+    } else {
+        // Tentar restaurar do localStorage
+        const usuarioSalvo = localStorage.getItem('usuarioAtual');
+        if (usuarioSalvo) {
+            try {
+                usuarioAtual = JSON.parse(usuarioSalvo);
+                mostrarApp();
+                carregarDados();
+            } catch (e) {
+                localStorage.removeItem('usuarioAtual');
+            }
+        }
+    }
+
+    // Atualizar hora
+    setInterval(() => {
+        const agora = new Date();
+        document.getElementById('currentTime').textContent = agora.toLocaleTimeString('pt-BR');
+        document.getElementById('currentDate').textContent = agora.toLocaleDateString('pt-BR');
+    }, 1000);
+});
+
+// Dados globais
+window.ensaios = [];
+window.produtos = [];
+</script>
+
+</body>
+</html>
