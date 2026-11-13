@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Röchling — Metrologia v10</title>
+<title>Röchling — Metrologia v11</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
@@ -538,6 +538,35 @@ tbody td{font-size:13px;}
 .pg-cur{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);padding:0 8px;}
 .pg-size{display:flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
 .pg-size select{width:auto;padding:4px 8px;font-size:12px;}
+
+/* ── v11: cadastros ── */
+.cad-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start;}
+@media(max-width:1150px){.cad-grid{grid-template-columns:1fr;}}
+.cad-row3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;}
+.cad-note{font-size:11.5px;color:var(--text2);line-height:1.5;background:var(--accentL);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:8px 11px;margin-bottom:12px;}
+.cad-btns{display:flex;gap:8px;margin-top:4px;margin-bottom:16px;}
+.cad-btns .btn-save{margin-top:0;flex:1;}
+.cad-btns .btn-ghost{margin-top:0;width:auto;padding:8px 16px;}
+.cad-btns .btn-ghost:hover{border-color:var(--border3);color:var(--text);}
+.cad-act{display:flex;gap:6px;justify-content:flex-end;}
+.cad-act .tool-btn{padding:4px 9px;font-size:9px;}
+.cad-act .tool-btn.dng:hover{border-color:var(--danger);color:var(--danger);}
+.cad-empty{padding:18px;text-align:center;color:var(--text3);font-size:12px;}
+.tag-off{background:var(--bg4);color:var(--text3);border:1px solid var(--border2);padding:2px 7px;border-radius:3px;font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;}
+.tag-on{background:var(--successL);color:var(--success);border:1px solid rgba(0,229,153,.3);padding:2px 7px;border-radius:3px;font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;}
+.part-info{font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.5;border-radius:4px;padding:7px 11px;margin:-3px 0 11px;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);}
+.part-info.ok{color:var(--success);border-color:rgba(0,229,153,.35);background:var(--successL);}
+.part-info.warn{color:var(--warn);border-color:rgba(255,211,42,.35);background:var(--warnL);}
+.part-info a{color:var(--accent);text-decoration:underline;cursor:pointer;}
+input[readonly]{cursor:not-allowed;border-style:dashed;}
+select:disabled{opacity:.75;cursor:not-allowed;}
+.spec-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;border:1px solid var(--border);border-radius:4px;margin-bottom:5px;background:var(--bg3);font-size:12px;color:var(--text);}
+.spec-row .sr-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.spec-add{width:100%;margin-bottom:10px;padding:8px;border-color:rgba(0,212,255,.4);color:var(--accent);background:var(--accentL);}
+.spec-add:hover{background:var(--accent);color:#000;}
+.sp-x{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;}
+.sp-x:hover{color:var(--danger);}
+
 </style>
 </head>
 <body>
@@ -545,12 +574,13 @@ tbody td{font-size:13px;}
 <aside class="sidebar no-print">
   <div class="sb-brand">
     <div class="sb-mark">R</div>
-    <div class="sb-brandtxt"><div class="sb-title">Röchling</div><div class="sb-sub">METROLOGIA · v10</div></div>
+    <div class="sb-brandtxt"><div class="sb-title">Röchling</div><div class="sb-sub">METROLOGIA · v11</div></div>
   </div>
   <div class="sb-section">Navegação</div>
   <nav class="sb-nav">
     <button class="nav-item active" id="tab-dashboard" onclick="switchTab('dashboard')"><span class="ni-ico">▦</span><span class="ni-txt">Visão Geral</span></button>
     <button class="nav-item" id="tab-ensaios" onclick="switchTab('ensaios')"><span class="ni-ico">◈</span><span class="ni-txt">Ensaios</span><span class="tab-count" id="tab-count-ensaios">0</span></button>
+    <button class="nav-item" id="tab-cadastros" onclick="switchTab('cadastros')"><span class="ni-ico">☰</span><span class="ni-txt">Cadastros</span></button>
     <button class="nav-item" id="tab-analise" onclick="switchTab('analise')"><span class="ni-ico">▲</span><span class="ni-txt">Análise</span><span class="tab-count" id="tab-count-analise">0</span></button>
     <button class="nav-item" id="tab-impressao" onclick="switchTab('impressao')"><span class="ni-ico">⎙</span><span class="ni-txt">Impressão</span><span class="tab-count" id="tab-count-impressao">0</span></button>
     <button class="nav-item" id="tab-backup" onclick="switchTab('backup')"><span class="ni-ico">⛁</span><span class="ni-txt">Backup</span></button>
@@ -638,9 +668,11 @@ tbody td{font-size:13px;}
       </div>
       <div class="burst-note" id="burst-note">⚡ ENSAIO DE ESTOURO — Unidade fixada em <strong>bar</strong>.</div>
       <div class="row2">
-        <div class="field"><label class="field-label">Inspetor *</label><input type="text" id="f-inspector" placeholder="Nome completo"></div>
-        <div class="field"><label class="field-label">Cód. amostra *</label><input type="text" id="f-sample" placeholder="Ex: CP-001"></div>
+        <div class="field"><label class="field-label">Inspetor *</label><select id="f-inspector"><option value="">Carregando...</option></select></div>
+        <div class="field"><label class="field-label">Código da peça *</label><input type="text" id="f-sample" placeholder="Ex: CP-001" list="part-list" autocomplete="off" oninput="onPartInput()" onchange="onPartChange()"><datalist id="part-list"></datalist></div>
       </div>
+      <div class="part-info" id="part-info">Selecione ou digite o código da peça para carregar tipo, limite e unidade.</div>
+      <div class="field" id="spec-sel-wrap" style="display:none"><label class="field-label">Variante / ensaio da peça *</label><select id="f-spec-sel" onchange="onSpecSel()"></select></div>
       <div class="field">
         <div class="dt-row">
           <span class="field-label" style="margin-bottom:0">Data e hora</span>
@@ -669,8 +701,8 @@ tbody td{font-size:13px;}
       <div class="panel-title" style="margin-top:4px">Valores de ensaio</div>
       <div class="row2">
         <div class="field field-hi" id="field-spec-wrap">
-          <label class="field-label" id="label-spec">Valor especificado *</label>
-          <input type="number" id="f-spec" placeholder="0.00" step="0.01" oninput="liveCalc()">
+          <label class="field-label" id="label-spec">Valor especificado * 🔒</label>
+          <input type="number" id="f-spec" placeholder="Do cadastro" step="0.01" oninput="liveCalc()" readonly tabindex="-1">
         </div>
         <div class="field field-hi found" id="field-found-wrap">
           <label class="field-label" id="label-found">Valor encontrado *</label>
@@ -746,6 +778,74 @@ tbody td{font-size:13px;}
         </label>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ═══ ABA: CADASTROS (peças + inspetores) ═══ -->
+<div class="tab-pane" id="pane-cadastros">
+  <div class="cad-grid">
+
+    <div class="panel">
+      <div class="panel-title" id="pt-title">Cadastro de peças</div>
+      <div class="cad-note">O inspetor digita apenas o <strong>código</strong> no ensaio; <strong>tipo, limite e unidade vêm daqui</strong> e não podem ser digitados no ensaio. Regra de aprovação: <em>valor encontrado ≥ limite</em>. Uma peça pode ter <strong>várias especificações</strong> (ex.: LE e LD, cavidade 1 e 2, estouro e tração). Alterar um limite vale só para ensaios futuros — os já gravados mantêm o valor da época.</div>
+      <div class="row2">
+        <div class="field"><label class="field-label">Código da peça *</label><input type="text" id="pt-code" placeholder="Ex: CP-001" autocomplete="off"></div>
+        <div class="field"><label class="field-label">Descrição</label><input type="text" id="pt-desc" placeholder="Ex: Coletor de admissão" autocomplete="off"></div>
+      </div>
+      <div class="panel-title" style="margin-top:2px">Especificações da peça</div>
+      <div class="row2" style="grid-template-columns:1fr">
+        <div class="field"><label class="field-label">Variante (digite livremente ou escolha)</label>
+          <input type="text" id="pt-var" list="pt-var-list" placeholder="Ex: LE, LD, Cav. 3, Lote A… (use + para várias com o mesmo limite: LE + LD)" autocomplete="off" maxlength="40">
+          <datalist id="pt-var-list"><option value="LE"><option value="LD"><option value="LE + LD"><option value="Cav. 1"><option value="Cav. 2"><option value="Cav. 1 + Cav. 2"></datalist></div>
+      </div>
+      <div class="cad-row3">
+        <div class="field"><label class="field-label">Tipo de ensaio *</label>
+          <select id="pt-type" onchange="ptTypeChange()">
+            <option value="comp">▼ Compressão</option><option value="trac">▲ Tração</option><option value="burst">💥 Estouro</option>
+          </select></div>
+        <div class="field field-hi"><label class="field-label">Limite (mín.) *</label><input type="number" id="pt-limit" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field"><label class="field-label">Unidade *</label>
+          <select id="pt-unit">
+            <option value="kN">kN</option><option value="MPa">MPa</option><option value="kgf">kgf</option><option value="tf">tf</option>
+            <option value="N">N</option><option value="mm">mm</option><option value="psi">psi</option><option value="bar">bar</option>
+          </select></div>
+      </div>
+      <button class="tool-btn spec-add" onclick="addSpec()">＋ ADICIONAR ESPECIFICAÇÃO À PEÇA</button>
+      <div id="pt-specs" style="margin-bottom:12px"></div>
+      <div class="cad-btns">
+        <button class="btn-save" id="pt-save" onclick="savePart()"><span id="pt-save-lbl">SALVAR PEÇA</span></button>
+        <button class="btn-ghost" id="pt-cancel" onclick="cancelPart()" style="display:none">Cancelar</button>
+      </div>
+      <div class="tbl-toolbar">
+        <div class="panel-title" style="margin-bottom:0">Peças cadastradas <span id="pt-count" style="color:var(--accent)">0</span></div>
+        <div class="tbl-actions"><input class="tbl-search" id="pt-search" placeholder="Filtrar..." oninput="renderParts()"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Código</th><th>Descrição</th><th>Especificações (tipo · variante · limite)</th><th></th></tr></thead>
+          <tbody id="pt-body"><tr><td class="cad-empty" colspan="6">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" id="in-title">Cadastro de inspetores</div>
+      <div class="cad-note">Só inspetores <strong>ativos</strong> aparecem na lista do ensaio. Inativar preserva o histórico.</div>
+      <div class="field"><label class="field-label">Nome completo *</label><input type="text" id="in-name" placeholder="Nome completo" autocomplete="off"></div>
+      <div class="field"><label class="field-label">Matrícula (opcional)</label><input type="text" id="in-mat" placeholder="Ex: 12345" autocomplete="off"></div>
+      <div class="cad-btns">
+        <button class="btn-save" id="in-save" onclick="saveInsp()"><span id="in-save-lbl">SALVAR INSPETOR</span></button>
+        <button class="btn-ghost" id="in-cancel" onclick="cancelInsp()" style="display:none">Cancelar</button>
+      </div>
+      <div class="panel-title">Inspetores <span id="in-count" style="color:var(--accent)">0</span></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Nome</th><th>Matrícula</th><th>Status</th><th></th></tr></thead>
+          <tbody id="in-body"><tr><td class="cad-empty" colspan="4">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1088,6 +1188,7 @@ function switchTab(tab,keepDrill){
   try{localStorage.setItem('roch-tab',tab);}catch(e){}
   if(tab==='dashboard')renderDashboard();
   if(tab==='ensaios')renderTable();
+  if(tab==='cadastros')renderCadastros();
   if(tab==='analise'){if(chartsReady)updateAnalise();else initAnaliseCharts();}
   if(tab==='impressao'){renderPrintTable();}
   if(tab==='backup'){bkRender();if(bkLoaded===false&&window._db)bkLoadList();}
@@ -1157,12 +1258,12 @@ function setType(t){
   document.getElementById('num-block').style.display=isVis?'none':'';
   document.getElementById('unit-field').style.display=isBurst?'none':'';
   if(isBurst)document.getElementById('f-unit').value='bar';
-  document.getElementById('label-spec').textContent=isBurst?'Pressão especificada (bar) *':'Valor especificado *';
+  document.getElementById('label-spec').textContent=isBurst?'Pressão especificada (bar) * 🔒':'Valor especificado * 🔒';
   document.getElementById('label-found').textContent=isBurst?'Pressão de estouro (bar) *':'Valor encontrado *';
   const sw=document.getElementById('field-spec-wrap'),fw=document.getElementById('field-found-wrap');
   sw.className=isBurst?'field field-hi-burst':'field field-hi';
   fw.className=isBurst?'field field-hi-burst':'field field-hi found';
-  if(!isVis)liveCalc();
+  if(!isVis)onPartInput();
 }
 let visResult=null;
 function setVisResult(r){
@@ -1236,13 +1337,19 @@ function calcEditModal(){
 async function saveRecord(){
   const inspector=document.getElementById('f-inspector').value.trim();
   const sample=document.getElementById('f-sample').value.trim();
-  const spec=parseFloat(document.getElementById('f-spec').value);
+  const part=findPart(sample);
+  const numeric=currentType!=='visual';
+  const ps=numeric?selectedSpec(part):null;
+  const spec=ps?ps.limit:NaN;
   const found=parseFloat(document.getElementById('f-found').value);
-  const unit=currentType==='burst'?'bar':document.getElementById('f-unit').value;
+  const unit=ps?ps.unit:(currentType==='burst'?'bar':document.getElementById('f-unit').value);
   const notes=document.getElementById('f-notes').value.trim();
   const isAuto=document.getElementById('auto-dt').checked;
   if(!inspector){showToast('⚠ Informe o inspetor.');return;}
-  if(!sample){showToast('⚠ Informe o código da amostra.');return;}
+  if(!sample){showToast('⚠ Informe o código da peça.');return;}
+  if(numeric&&!part){showToast('⚠ Peça não cadastrada. Cadastre-a na aba Cadastros.');return;}
+  if(numeric&&(!ps||ps.type!==currentType)){showToast(part.specs.length>1?'⚠ Selecione a variante / ensaio da peça.':'⚠ Esta peça não tem ensaio de '+typeLabel(currentType)+'.');return;}
+  if(inspector&&!(window._insps||[]).some(i=>i.name===inspector&&i.active!==false)){showToast('⚠ Inspetor não cadastrado/ativo.');return;}
   const visItem=document.getElementById('f-vis-item').value.trim(),visLocal=document.getElementById('f-vis-local').value.trim();
   if(currentType==='visual'){
     if(!visItem){showToast('⚠ Informe o item verificado.');return;}
@@ -1273,7 +1380,7 @@ async function saveRecord(){
     const{collection,addDoc,serverTimestamp}=window._fbFns;
     await addDoc(collection(window._db,window._col),{
       createdAt:serverTimestamp(),date:recDate,dateFull:recDateFull,time:recTime,weekday:recWeekday,
-      type:currentType,inspector,sample,spec:isVis?null:spec,found:isVis?null:found,unit:isVis?'—':unit,diff,desvio,status,notes,
+      type:currentType,inspector,sample:(part?part.code:sample),specSource:isVis?null:'cadastro',variant:isVis?null:(ps.variant||null),spec:isVis?null:spec,found:isVis?null:found,unit:isVis?'—':unit,diff,desvio,status,notes,
       ...(isVis?{visItem,visLocal,visResult}:{})
     });
     showToast(status==='Aprovado'?'✓ Aprovado — salvo!':'✗ Reprovado — salvo.');
@@ -1320,6 +1427,7 @@ async function saveEdit(){
   const isVis=type==='visual';
   const visItem=document.getElementById('em-vis-item').value.trim(),visLocal=document.getElementById('em-vis-local').value.trim(),visRes=document.getElementById('em-vis-result').value;
   if(!inspector||!sample||(!isVis&&(isNaN(spec)||isNaN(found)))||(isVis&&!visItem)){showToast('⚠ Preencha todos os campos obrigatórios.');return;}
+  if(!isVis){const pp=findPart(sample);if(pp){const same=pp.specs.filter(x=>x.type===type);if(same.length&&!same.some(x=>x.limit===spec&&x.unit===unit)&&!confirm('Atenção: o valor especificado ('+spec+' '+unit+') não confere com o cadastro da peça '+pp.code+' ('+same.map(x=>(x.variant?x.variant+': ':'')+x.limit+' '+x.unit).join(' / ')+').\n\nSalvar assim mesmo?'))return;}}
   const diff=isVis?null:found-spec,desvio=isVis?null:(spec!==0?(diff/spec)*100:0),status=isVis?(visRes==='OK'?'Aprovado':'Reprovado'):(found>=spec?'Aprovado':'Reprovado');
   let date='',time='';
   if(dateFull){const[y,m,d]=dateFull.split('-');date=d+'/'+m+'/'+y;}
@@ -1382,7 +1490,7 @@ function renderTable(){
   const records=window._records||[];
   const q=document.getElementById('tbl-search').value.toLowerCase();
   const sorted=[...records].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  const filtered=applyDrill(sorted).filter(r=>[r.sample,r.inspector,r.unit,r.status,r.type,r.date,r.visItem,r.visResult].join(' ').toLowerCase().includes(q));
+  const filtered=applyDrill(sorted).filter(r=>[r.sample,r.variant,r.inspector,r.unit,r.status,r.type,r.date,r.visItem,r.visResult].join(' ').toLowerCase().includes(q));
   const tbody=document.getElementById('tbl-body');
   if(!filtered.length){renderPager(0,1,0,0);tbody.innerHTML=records.length===0?'<tr><td class="empty-td" colspan="13">Nenhum ensaio na nuvem.</td></tr>':'<tr><td class="empty-td" colspan="13">Nenhum registro encontrado.</td></tr>';return;}
   const total=filtered.length,pages=Math.max(1,Math.ceil(total/tblPageSize));
@@ -1400,7 +1508,7 @@ function renderTable(){
       <td><span class="td-date-time">${esc(r.time||'—')}</span></td>
       <td>${typeTag(r.type)}</td>
       <td style="font-size:12px">${esc(r.inspector)}</td>
-      <td class="td-amostra">${esc(r.sample)}</td>
+      <td class="td-amostra">${esc(r.sample)}${vTag(r)}${descTag(r)}</td>
       <td class="td-mono">${esc(unitCell(r))}</td>
       <td class="td-mono">${esc(fmtN(r,'spec'))}</td>
       <td class="td-mono" style="font-weight:700">${esc(fmtN(r,'found'))}</td>
@@ -1679,7 +1787,7 @@ function renderPrintTable(){
       <td><span class="td-date-wd">${esc(getWd(r))}</span></td>
       <td>${typeTag(r.type)}</td>
       <td style="font-size:11px">${esc(r.inspector)}</td>
-      <td class="td-amostra">${esc(r.sample)}</td>
+      <td class="td-amostra">${esc(r.sample)}${vTag(r)}${descTag(r)}</td>
       <td class="td-mono">${esc(unitCell(r))}</td>
       <td class="td-mono">${esc(fmtN(r,'spec'))}</td>
       <td class="td-mono" style="font-weight:700">${esc(fmtN(r,'found'))}</td>
@@ -1772,7 +1880,7 @@ function buildReportPage(data,empresa,numLaudo,resp,obs,showSig){
     return`<tr style="background:${bg}">
       <td>${i+1}</td><td>${esc(r.date||'—')} <span style="font-size:8px;color:#94a3b8">${esc(wd)}</span></td><td>${esc(r.time||'—')}</td>
       <td style="color:${tc};font-weight:600">${typeLabel(r.type)}</td>
-      <td>${esc(r.inspector)}</td><td style="font-weight:600">${esc(r.sample)}</td><td>${esc(unitCell(r))}</td>
+      <td>${esc(r.inspector)}</td><td style="font-weight:600">${esc(r.sample)}${r.variant?' <span style="font-weight:400;color:#64748b">('+esc(r.variant)+')</span>':''}${descTagPrint(r)}</td><td>${esc(unitCell(r))}</td>
       <td>${esc(fmtN(r,'spec'))}</td><td style="font-weight:700">${esc(fmtN(r,'found'))}</td>
       <td style="color:${sc}">${fmtDev(r,sign)}</td>
       <td style="font-weight:700;color:${sc}">${esc(r.status)}</td>
@@ -1905,10 +2013,10 @@ function nBR(x,d){const n=+x;return isFinite(n)?n.toFixed(d).replace('.',','):''
 function exportCSV(){
   const records=window._records||[];
   if(!records.length){showToast('Nenhum dado para exportar.');return;}
-  const h=['#','Data','Dia','Hora','Tipo','Inspetor','Amostra','Unidade/Item','Especificado','Encontrado','Desvio(%)','Status','Observações'];
+  const h=['#','Data','Dia','Hora','Tipo','Inspetor','Amostra','Descrição','Variante','Unidade/Item','Especificado','Encontrado','Desvio(%)','Status','Observações'];
   const rows=[...records].sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)).map((r,i)=>{
     const vis=r.type==='visual';
-    return [i+1,r.date||'',getWd(r),r.time||'',typeLabel(r.type),r.inspector,r.sample,unitCell(r),
+    return [i+1,r.date||'',getWd(r),r.time||'',typeLabel(r.type),r.inspector,r.sample,partDesc(r),r.variant||'',unitCell(r),
       vis?'OK':nBR(r.spec,2),vis?(r.visResult||''):nBR(r.found,2),vis?'':nBR(r.desvio,2),r.status,
       (r.visLocal?'['+r.visLocal+'] ':'')+(r.notes||'')].map(csvCell).join(';');
   });
@@ -1952,7 +2060,7 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ══════════ V9 — NAVEGAÇÃO, DASHBOARD, DRILL-DOWN, BACKUP ══════════ */
-const PAGE_TITLES={dashboard:'Visão Geral',ensaios:'Ensaios & Registros',analise:'Análise & Gráficos',impressao:'Impressão em Lote',backup:'Backup & Segurança'};
+const PAGE_TITLES={dashboard:'Visão Geral',ensaios:'Ensaios & Registros',cadastros:'Cadastros — Peças & Inspetores',analise:'Análise & Gráficos',impressao:'Impressão em Lote',backup:'Backup & Segurança'};
 let activeDrill=null;
 let dashChart=null;
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -2415,6 +2523,287 @@ async function fetchAllServer(){
   }
   return out;
 }
+
+
+/* ══════════ V11 — CADASTRO DE PEÇAS E INSPETORES ══════════ */
+window._parts=[];window._insps=[];
+const _g=id=>document.getElementById(id);
+const PART_COL='pecas',INSP_COL='inspetores';
+let editingPart=null,editingInsp=null;
+
+function findPart(code){
+  const c=String(code||'').trim().toUpperCase();
+  if(!c)return null;
+  return (window._parts||[]).find(p=>String(p.code).toUpperCase()===c)||null;
+}
+
+/* — formulário de ensaio: código → tipo, limite, unidade — */
+function onPartChange(){
+  const p=findPart(_g('f-sample').value);
+  if(p)_g('f-sample').value=p.code;   // normaliza maiúsc./minúsc. para o código cadastrado
+  onPartInput();
+}
+function onPartInput(){
+  const info=_g('part-info'),spec=_g('f-spec'),unit=_g('f-unit');
+  if(!info)return;
+  const raw=_g('f-sample').value.trim(),p=findPart(raw),vis=currentType==='visual';
+  info.className='part-info';
+  if(p){
+    const d=(p.desc?esc(p.desc)+' · ':'');
+    if(vis){
+      info.classList.add('ok');info.innerHTML='✓ Peça cadastrada: '+d+'<strong>'+esc(p.code)+'</strong> (inspeção visual não usa limite)';
+    }else{
+      if(currentType!==p.type){setType(p.type);return;}   // setType volta a chamar onPartInput
+      spec.value=p.limit;unit.value=p.unit;
+      info.classList.add('ok');
+      info.innerHTML='✓ '+d+'<strong>'+esc(typeLabel(p.type))+'</strong> · limite mín. <strong>'+(+p.limit).toFixed(2)+' '+esc(p.unit)+'</strong> — carregado do cadastro';
+    }
+  }else{
+    if(!vis){spec.value='';}
+    if(raw){info.classList.add('warn');info.innerHTML='⚠ Código “'+esc(raw)+'” não cadastrado. Escolha um da lista ou <a onclick="switchTab(\'cadastros\')">cadastre a peça</a>.';}
+    else info.textContent=vis?'Código da peça (opcional para validação em inspeção visual).':'Selecione ou digite o código da peça para carregar tipo, limite e unidade.';
+  }
+  liveCalc();
+}
+
+/* — Firestore: escuta em tempo real — */
+function regErr(nome,err){showToast('⚠ Cadastro de '+nome+': '+err.message+' (verifique as regras do Firestore)');}
+function startRegistries(){
+  const{collection,onSnapshot}=window._fbFns;
+  onSnapshot(collection(window._db,PART_COL),snap=>{
+    window._parts=snap.docs.map(d=>Object.assign({id:d.id},d.data(),{specs:normSpecs(d.data())}))
+      .sort((a,b)=>String(a.code).localeCompare(String(b.code),'pt-BR',{numeric:true}));
+    refreshParts();
+  },e=>regErr('peças',e));
+  onSnapshot(collection(window._db,INSP_COL),snap=>{
+    window._insps=snap.docs.map(d=>Object.assign({id:d.id},d.data()))
+      .sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR'));
+    refreshInsps();
+  },e=>regErr('inspetores',e));
+}
+function refreshParts(){
+  const dl=_g('part-list');
+  if(dl)dl.innerHTML=(window._parts||[]).map(p=>'<option value="'+esc(p.code)+'">'+esc((p.desc?p.desc+' · ':'')+p.specs.map(x=>specLabel(x)+' '+(+x.limit).toFixed(2)+' '+x.unit).join(' / '))+'</option>').join('');
+  renderParts();onPartInput();
+}
+function refreshInsps(){
+  const sel=_g('f-inspector');
+  if(sel){
+    const cur=sel.value,act=(window._insps||[]).filter(i=>i.active!==false);
+    sel.innerHTML='<option value="">'+(act.length?'Selecione o inspetor...':'— cadastre inspetores na aba Cadastros —')+'</option>'
+      +act.map(i=>'<option value="'+esc(i.name)+'">'+esc(i.name)+(i.mat?' ('+esc(i.mat)+')':'')+'</option>').join('');
+    if(act.some(i=>i.name===cur))sel.value=cur;
+  }
+  renderInsps();
+}
+function renderCadastros(){renderParts();renderInsps();}
+
+
+/* ── v11.1: várias especificações / variantes por peça ── */
+function normSpecs(d){
+  if(Array.isArray(d.specs)&&d.specs.length)return d.specs.map(x=>({type:x.type,variant:x.variant||'',limit:+x.limit,unit:x.unit}));
+  return d.type?[{type:d.type,variant:'',limit:+d.limit,unit:d.unit}]:[];
+}
+function specLabel(x){return typeLabel(x.type)+(x.variant?' · '+x.variant:'');}
+function partDesc(r){const p=r&&r.sample?findPart(r.sample):null;return p&&p.desc?String(p.desc):'';}
+function descTag(r){const d=partDesc(r);return d?'<div style="font-family:\'Barlow\',sans-serif;font-weight:400;font-size:11px;color:var(--text2,#8a97a8);margin-top:2px;line-height:1.25">'+esc(d)+'</div>':'';}
+function descTagPrint(r){const d=partDesc(r);return d?'<div style="font-weight:400;font-size:8.5px;color:#64748b;margin-top:1px;line-height:1.2">'+esc(d)+'</div>':'';}
+function vTag(r){return r&&r.variant?' <span style="font-size:10px;color:var(--accent);font-family:\'IBM Plex Mono\',monospace">'+esc(r.variant)+'</span>':'';}
+function selectedSpec(p){
+  const sel=_g('f-spec-sel');if(!p||!sel)return null;
+  const i=parseInt(sel.value);
+  return (sel.dataset.code===p.code&&i>=0&&i<p.specs.length)?p.specs[i]:null;
+}
+function onSpecSel(){
+  const p=findPart(_g('f-sample').value),x=selectedSpec(p);
+  if(!x)return onPartInput();
+  if(currentType!==x.type)setType(x.type);else onPartInput();
+}
+function onPartInput(){
+  const info=_g('part-info'),spec=_g('f-spec'),unit=_g('f-unit'),wrap=_g('spec-sel-wrap'),sel=_g('f-spec-sel');
+  if(!info)return;
+  const raw=_g('f-sample').value.trim(),p=findPart(raw),vis=currentType==='visual';
+  info.className='part-info';
+  if(!p){
+    wrap.style.display='none';sel.dataset.sig='';sel.dataset.code='';
+    if(!vis)spec.value='';
+    if(raw){info.classList.add('warn');info.innerHTML='⚠ Código “'+esc(raw)+'” não cadastrado. Escolha um da lista ou <a onclick="switchTab(\'cadastros\')">cadastre a peça</a>.';}
+    else info.textContent=vis?'Código da peça (opcional para validação em inspeção visual).':'Selecione ou digite o código da peça para carregar tipo, limite e unidade.';
+    liveCalc();return;
+  }
+  const d=(p.desc?esc(p.desc)+' · ':''),specs=p.specs||[];
+  if(vis){
+    wrap.style.display='none';
+    info.classList.add('ok');info.innerHTML='✓ Peça cadastrada: '+d+'<strong>'+esc(p.code)+'</strong> (inspeção visual não usa limite)';
+    liveCalc();return;
+  }
+  if(!specs.length){wrap.style.display='none';spec.value='';info.classList.add('warn');info.textContent='⚠ Peça sem especificações cadastradas.';liveCalc();return;}
+  // (re)monta a lista de variantes quando a peça ou os limites mudam
+  const sig=p.code+'|'+specs.map(x=>x.type+x.variant+x.limit+x.unit).join(';');
+  let idx=parseInt(sel.value);
+  if(sel.dataset.sig!==sig){
+    const keep=sel.dataset.code===p.code?idx:NaN;
+    sel.innerHTML='<option value="">Selecione...</option>'+specs.map((x,i)=>'<option value="'+i+'">'+esc(specLabel(x)+' — '+(+x.limit).toFixed(2)+' '+x.unit)+'</option>').join('');
+    sel.dataset.sig=sig;sel.dataset.code=p.code;
+    idx=(keep>=0&&keep<specs.length)?keep:NaN;
+  }
+  if(!(idx>=0&&idx<specs.length))idx=-1;
+  const same=[];specs.forEach((x,i)=>{if(x.type===currentType)same.push(i);});
+  if(idx<0||specs[idx].type!==currentType){
+    if(same.length===1)idx=same[0];
+    else if(same.length>1)idx=-1;                       // exige escolha explícita da variante
+    else{setType((specs[idx>=0?idx:0]).type);return;}   // peça não tem este tipo → vai para o tipo da peça
+  }
+  sel.value=idx>=0?String(idx):'';
+  wrap.style.display=specs.length>1?'':'none';
+  if(idx<0){
+    spec.value='';
+    info.classList.add('warn');info.innerHTML='⚠ '+d+'<strong>'+esc(p.code)+'</strong> tem mais de uma variante de '+esc(typeLabel(currentType))+'. Escolha a variante abaixo.';
+    liveCalc();return;
+  }
+  const x=specs[idx];
+  spec.value=x.limit;unit.value=x.unit;
+  info.classList.add('ok');
+  info.innerHTML='✓ '+d+'<strong>'+esc(typeLabel(x.type))+'</strong>'+(x.variant?' · <strong>'+esc(x.variant)+'</strong>':'')+' · limite mín. <strong>'+(+x.limit).toFixed(2)+' '+esc(x.unit)+'</strong> — carregado do cadastro';
+  liveCalc();
+}
+
+/* — cadastro de peças: especificações — */
+let ptSpecs=[];
+function varChange(){}
+function addSpec(){
+  const type=_g('pt-type').value,limit=parseFloat(_g('pt-limit').value),unit=type==='burst'?'bar':_g('pt-unit').value;
+  const v=_g('pt-var').value.trim();
+  if(!isFinite(limit)||limit<=0){showToast('⚠ Informe um limite maior que zero.');return false;}
+  const vars=v?[...new Set(v.split(/\s*[+|;]\s*/).map(x=>x.trim()).filter(Boolean))]:[''];
+  for(const vr of vars){
+    if(ptSpecs.some(x=>x.type===type&&x.variant===vr)){showToast('⚠ Já existe '+specLabel({type,variant:vr})+' nesta peça.');return false;}
+  }
+  vars.forEach(vr=>ptSpecs.push({type,variant:vr,limit,unit}));
+  _g('pt-limit').value='';_g('pt-var').value='';varChange();
+  renderSpecs();return true;
+}
+function removeSpec(i){ptSpecs.splice(i,1);renderSpecs();}
+function renderSpecs(){
+  const el=_g('pt-specs');if(!el)return;
+  el.innerHTML=ptSpecs.length?ptSpecs.map((x,i)=>'<div class="spec-row"><span class="sr-l">'+typeTag(x.type)+(x.variant?'<strong>'+esc(x.variant)+'</strong>':'<span style="color:var(--text3)">sem variante</span>')
+      +'<span class="td-mono">'+(+x.limit).toFixed(2)+' '+esc(x.unit)+'</span></span><button class="sp-x" title="Remover" onclick="removeSpec('+i+')">✕</button></div>').join('')
+    :'<div class="cad-empty" style="padding:8px">Nenhuma especificação adicionada ainda.</div>';
+}
+
+/* — peças — */
+function ptTypeChange(){
+  const b=_g('pt-type').value==='burst';
+  if(b)_g('pt-unit').value='bar';
+  _g('pt-unit').disabled=b;
+}
+function renderParts(){
+  const body=_g('pt-body');if(!body)return;
+  const q=(_g('pt-search').value||'').trim().toLowerCase();
+  const all=window._parts||[];
+  const list=all.filter(p=>!q||(p.code+' '+(p.desc||'')+' '+p.specs.map(x=>x.variant).join(' ')).toLowerCase().includes(q));
+  _g('pt-count').textContent=all.length;
+  if(!list.length){body.innerHTML='<tr><td class="cad-empty" colspan="4">'+(all.length?'Nenhuma peça encontrada.':'Nenhuma peça cadastrada ainda.')+'</td></tr>';return;}
+  body.innerHTML=list.map(p=>'<tr><td class="td-mono">'+esc(p.code)+'</td><td>'+esc(p.desc||'—')+'</td><td>'
+    +p.specs.map(x=>'<div style="display:flex;align-items:center;gap:8px;margin:2px 0">'+typeTag(x.type)+(x.variant?'<strong style="color:var(--text)">'+esc(x.variant)+'</strong>':'')+'<span class="td-mono">'+(+x.limit).toFixed(2)+' '+esc(x.unit)+'</span></div>').join('')
+    +'</td><td><div class="cad-act"><button class="tool-btn" onclick="editPart(\''+esc(p.id)+'\')">EDITAR</button><button class="tool-btn dng" onclick="deletePart(\''+esc(p.id)+'\')">EXCLUIR</button></div></td></tr>').join('');
+}
+function cancelPart(){
+  editingPart=null;ptSpecs=[];
+  ['pt-code','pt-desc','pt-limit','pt-var'].forEach(id=>_g(id).value='');
+  _g('pt-code').readOnly=false;_g('pt-type').value='comp';_g('pt-unit').value='kN';_g('pt-var').value='';varChange();ptTypeChange();renderSpecs();
+  _g('pt-title').textContent='Cadastro de peças';_g('pt-save-lbl').textContent='SALVAR PEÇA';
+  _g('pt-save').classList.remove('edit-mode');_g('pt-cancel').style.display='none';
+}
+function editPart(id){
+  const p=(window._parts||[]).find(x=>x.id===id);if(!p)return;
+  editingPart=id;ptSpecs=p.specs.map(x=>Object.assign({},x));
+  _g('pt-code').value=p.code;_g('pt-code').readOnly=true;_g('pt-desc').value=p.desc||'';
+  _g('pt-limit').value='';_g('pt-var').value='';varChange();ptTypeChange();renderSpecs();
+  _g('pt-title').textContent='Editando peça '+p.code;_g('pt-save-lbl').textContent='ATUALIZAR PEÇA';
+  _g('pt-save').classList.add('edit-mode');_g('pt-cancel').style.display='';
+  _g('pt-code').scrollIntoView({behavior:'smooth',block:'center'});
+}
+async function savePart(){
+  if(!window._db){showToast('⚠ Firebase não conectado.');return;}
+  const code=_g('pt-code').value.trim(),desc=_g('pt-desc').value.trim();
+  if(!code){showToast('⚠ Informe o código da peça.');return;}
+  if(!/^[\w.\-]+$/.test(code)){showToast('⚠ Código: use só letras, números, ponto, hífen ou underline (sem espaços).');return;}
+  if(_g('pt-limit').value!==''&&!addSpec())return;   // aproveita o que já está digitado
+  if(!ptSpecs.length){showToast('⚠ Adicione ao menos uma especificação (tipo + limite).');return;}
+  const id=editingPart||code.toUpperCase();
+  if(!editingPart&&(window._parts||[]).some(p=>p.id===id)){showToast('⚠ Já existe uma peça com o código '+code+'.');return;}
+  const msg='Confirmar cadastro?\n\nPeça: '+code+(desc?' — '+desc:'')+'\n\n'
+    +ptSpecs.map(x=>'• '+specLabel(x)+': '+x.limit.toFixed(2)+' '+x.unit).join('\n')
+    +(editingPart?'\n\n(Alterações valem só para ensaios futuros.)':'');
+  if(!confirm(msg))return;
+  try{
+    const{doc,setDoc,serverTimestamp}=window._fbFns;
+    const old=editingPart?(window._parts||[]).find(p=>p.id===id):null;
+    await setDoc(doc(window._db,PART_COL,id),{code:old?old.code:code,desc,specs:ptSpecs,updatedAt:serverTimestamp()});
+    showToast('✓ Peça '+code+' salva.');cancelPart();
+  }catch(e){showToast('⚠ Erro: '+e.message);}
+}
+async function deletePart(id){
+  const p=(window._parts||[]).find(x=>x.id===id);if(!p)return;
+  if(!confirm('Excluir a peça '+p.code+'?\n\nOs ensaios já registrados não são alterados.'))return;
+  try{const{doc,deleteDoc}=window._fbFns;await deleteDoc(doc(window._db,PART_COL,id));showToast('Peça removida.');if(editingPart===id)cancelPart();}
+  catch(e){showToast('⚠ Erro: '+e.message);}
+}
+
+/* — inspetores — */
+function renderInsps(){
+  const body=_g('in-body');if(!body)return;
+  const all=window._insps||[];
+  _g('in-count').textContent=all.length;
+  if(!all.length){body.innerHTML='<tr><td class="cad-empty" colspan="4">Nenhum inspetor cadastrado ainda.</td></tr>';return;}
+  body.innerHTML=all.map(i=>{const on=i.active!==false;
+    return '<tr><td class="td-mono">'+esc(i.name)+'</td><td>'+esc(i.mat||'—')+'</td><td>'+(on?'<span class="tag-on">ATIVO</span>':'<span class="tag-off">INATIVO</span>')+'</td>'
+    +'<td><div class="cad-act"><button class="tool-btn" onclick="editInsp(\''+esc(i.id)+'\')">EDITAR</button>'
+    +'<button class="tool-btn" onclick="toggleInsp(\''+esc(i.id)+'\')">'+(on?'INATIVAR':'ATIVAR')+'</button>'
+    +'<button class="tool-btn dng" onclick="deleteInsp(\''+esc(i.id)+'\')">EXCLUIR</button></div></td></tr>';}).join('');
+}
+function cancelInsp(){
+  editingInsp=null;_g('in-name').value='';_g('in-mat').value='';
+  _g('in-title').textContent='Cadastro de inspetores';_g('in-save-lbl').textContent='SALVAR INSPETOR';
+  _g('in-save').classList.remove('edit-mode');_g('in-cancel').style.display='none';
+}
+function editInsp(id){
+  const i=(window._insps||[]).find(x=>x.id===id);if(!i)return;
+  editingInsp=id;_g('in-name').value=i.name;_g('in-mat').value=i.mat||'';
+  _g('in-title').textContent='Editando inspetor';_g('in-save-lbl').textContent='ATUALIZAR INSPETOR';
+  _g('in-save').classList.add('edit-mode');_g('in-cancel').style.display='';_g('in-name').focus();
+}
+async function saveInsp(){
+  if(!window._db){showToast('⚠ Firebase não conectado.');return;}
+  const name=_g('in-name').value.trim().replace(/\s+/g,' '),mat=_g('in-mat').value.trim();
+  if(!name){showToast('⚠ Informe o nome do inspetor.');return;}
+  if((window._insps||[]).some(i=>i.id!==editingInsp&&i.name.toLowerCase()===name.toLowerCase())){showToast('⚠ Já existe um inspetor com esse nome.');return;}
+  try{
+    const{collection,addDoc,doc,updateDoc,serverTimestamp}=window._fbFns;
+    if(editingInsp)await updateDoc(doc(window._db,INSP_COL,editingInsp),{name,mat,updatedAt:serverTimestamp()});
+    else await addDoc(collection(window._db,INSP_COL),{name,mat,active:true,createdAt:serverTimestamp()});
+    showToast('✓ Inspetor salvo.');cancelInsp();
+  }catch(e){showToast('⚠ Erro: '+e.message);}
+}
+async function toggleInsp(id){
+  const i=(window._insps||[]).find(x=>x.id===id);if(!i)return;
+  try{const{doc,updateDoc}=window._fbFns;await updateDoc(doc(window._db,INSP_COL,id),{active:i.active===false});}
+  catch(e){showToast('⚠ Erro: '+e.message);}
+}
+async function deleteInsp(id){
+  const i=(window._insps||[]).find(x=>x.id===id);if(!i)return;
+  if(!confirm('Excluir o inspetor '+i.name+'?\n\nPrefira INATIVAR para manter o histórico organizado. Os ensaios já registrados não mudam.'))return;
+  try{const{doc,deleteDoc}=window._fbFns;await deleteDoc(doc(window._db,INSP_COL,id));showToast('Inspetor removido.');if(editingInsp===id)cancelInsp();}
+  catch(e){showToast('⚠ Erro: '+e.message);}
+}
+
+/* inicialização dos cadastros */
+(function(){
+  _g('f-unit').disabled=true;               // unidade vem sempre da peça
+  if(window._fbReady)startRegistries();
+  else{const prev=window._onFbReady;window._onFbReady=function(){if(prev)prev();startRegistries();};}
+})();
 
 /* ── init ── */
 (function(){
